@@ -1,0 +1,47 @@
+server:
+  port: 8086
+user-service:
+  host: localhost
+  port: 8080
+post-service:
+  host: localhost
+  port: 8081
+project-service:
+  host: localhost
+  port: 8082
+
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: user
+    password: password
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  data:
+    redis:
+      port: 6379
+      host: localhost
+      channels:
+        profile-view: profile_view_channel
+        post-comment: post_comment_channel
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: ERROR
+    org.hibernate.type: ERROR
+
+
