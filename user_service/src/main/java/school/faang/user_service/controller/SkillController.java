@@ -24,4 +24,13 @@ public class SkillController {
         return skillService.getUserSkills(userId);
     }
 
+    @DeleteMapping("/delete")
+   public SkillDto deleteSkill(@RequestBody SkillDto skillDto){
+        return skillService.deleteSkill(skillDto);
+    }
+
+    @PutMapping("/update/{newTitle}")
+    public String updateSkill(@RequestBody SkillDto skillDto, @PathVariable String newTitle){
+        return skillService.updateSkill(skillDto, newTitle);
+    }
 }
