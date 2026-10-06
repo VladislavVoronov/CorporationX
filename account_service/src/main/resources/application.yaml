@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${CORPORATIONX_DB_URL:jdbc:postgresql://localhost:15432/corporationx}
+    username: ${CORPORATIONX_DB_USER:user}
+    password: ${CORPORATIONX_DB_PASSWORD:password}
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+server:
+  port: 8090
+
+logging:
+  level:
+    root: info

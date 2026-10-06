@@ -1,10 +1,24 @@
 package faang.school.projectservice.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "candidate")
 public class Candidate {
@@ -13,6 +27,8 @@ public class Candidate {
     private Long id;
     @NotNull
     private Long userId;
+    @NotNull
+    private String username;
     private String resumeDocKey;
     private String coverLetter;
     @Enumerated(EnumType.STRING)

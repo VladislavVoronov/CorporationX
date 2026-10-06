@@ -6,3 +6,13 @@
 *.iml
 out
 gen
+
+# Local build and runtime artifacts
+**/build/
+**/.gradle/
+.starter-work/
+.env
+.DS_Store
+.venv/
+**/__pycache__/
+*.pyc

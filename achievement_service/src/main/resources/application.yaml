@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: user
-    password: password
+    url: ${CORPORATIONX_DB_URL:jdbc:postgresql://localhost:15432/corporationx}
+    username: ${CORPORATIONX_DB_USER:user}
+    password: ${CORPORATIONX_DB_PASSWORD:password}
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -19,7 +19,7 @@ spring:
 
   data:
     redis:
-      port: 6379
+      port: ${CORPORATIONX_REDIS_PORT:16379}
       host: localhost
       channel:
         achievement: achievement_channel
