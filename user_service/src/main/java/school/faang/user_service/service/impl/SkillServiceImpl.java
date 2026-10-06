@@ -25,7 +25,7 @@ public class SkillServiceImpl implements SkillService {
         Skill skill = new Skill();
         skill.setTitle(skillDto.getTitle());
         User user = userRepository.findByUsername(skillDto.getUsername()).orElseThrow(
-                ()-> new EntityNotFoundException("User not found")
+                () -> new EntityNotFoundException("User not found")
         );
         List<User> userList = new ArrayList<>();
         userList.add(user);
@@ -35,4 +35,61 @@ public class SkillServiceImpl implements SkillService {
         userRepository.save(user);
         return skill.getTitle();
     }
+
+
+    @Override
+    public List<String> getUserSkills(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        List<String> userSkills = new ArrayList<>();
+        for (Skill skill : user.getSkills()) {
+            userSkills.add(skill.getTitle());
+        }
+        return userSkills;
+    }
+
+    @Override
+    public SkillDto deleteSkill(SkillDto skillDto) {
+        User user = userRepository.findByUsername(skillDto.getUsername()).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        List<Skill> userSkills = user.getSkills();
+        Skill skill = skillRepository.findByTitle(skillDto.getTitle()).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        userSkills.remove(skill);
+        user.setSkills(userSkills);
+        userRepository.save(user);
+        skillRepository.delete(skill);
+
+        skillDto.setUsername(user.getUsername());
+        skillDto.setTitle(skill.getTitle());
+
+        return skillDto;
+
+    }
+
+    @Override
+    public String updateSkill(SkillDto skillDto, String newTitle) {
+        User user = userRepository.findByUsername(skillDto.getUsername()).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        Skill skill = skillRepository.findByTitle(skillDto.getTitle()).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        List<Skill> userSkills = user.getSkills();
+        userSkills.remove(skill);
+        skill.setTitle(newTitle);
+        skill = skillRepository.save(skill);
+        userSkills.add(skill);
+        user.setSkills(userSkills);
+        userRepository.save(user);
+        return skill.getTitle();
+
+
+
+    }
+
+
 }
