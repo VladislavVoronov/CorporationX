@@ -17,15 +17,22 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
-import java.util.List;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.LastModifiedBy;
 
-@Data
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "internship")
 public class Internship {
@@ -42,6 +49,10 @@ public class Internship {
     @JoinColumn(name = "mentor_id")
     @NotNull
     private TeamMember mentorId;
+
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
+    private TeamRole role;
 
     @ManyToMany
     @JoinTable(

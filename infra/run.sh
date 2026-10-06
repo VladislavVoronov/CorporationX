@@ -1,2 +1,4 @@
-docker-compose build
-docker-compose up -d
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")"
+docker compose -p corporationx-starter up -d --wait

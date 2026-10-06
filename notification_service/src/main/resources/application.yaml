@@ -1,23 +1,23 @@
 spring:
   data:
     redis:
-      port: 6379
+      port: ${CORPORATIONX_REDIS_PORT:16379}
       host: localhost
       channel:
         follower: follower_channel
         achievement: achievement_channel
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: your_email@gmail.com #https://www.baeldung.com/spring-email
-    password: whatever #генерируем для своего Google аккаунта по инструкции https://support.google.com/accounts/answer/185833
+    host: localhost
+    port: ${CORPORATIONX_SMTP_PORT:11025}
+    username: ""
+    password: ""
     properties:
       mail:
         smtp:
-          auth: true
+          auth: false
           starttls:
-            enable: true
+            enable: false
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
@@ -35,8 +35,8 @@ logging:
 #Можно зарегистрировать аккаунт без привязки карты. Будет 2 евро на отправку тестовых SMS
 vonage: #https://dashboard.nexmo.com/getting-started/sms
   api:
-    key: whatever
-    secret: whatever
+    key: ""
+    secret: ""
 
 project-service:
     host: localhost
