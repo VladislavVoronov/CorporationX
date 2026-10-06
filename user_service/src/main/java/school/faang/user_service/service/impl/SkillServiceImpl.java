@@ -25,7 +25,7 @@ public class SkillServiceImpl implements SkillService {
         Skill skill = new Skill();
         skill.setTitle(skillDto.getTitle());
         User user = userRepository.findByUsername(skillDto.getUsername()).orElseThrow(
-                ()-> new EntityNotFoundException("User not found")
+                () -> new EntityNotFoundException("User not found")
         );
         List<User> userList = new ArrayList<>();
         userList.add(user);
@@ -35,4 +35,20 @@ public class SkillServiceImpl implements SkillService {
         userRepository.save(user);
         return skill.getTitle();
     }
+
+
+    @Override
+    public List<String> getUserSkills(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        List<String> userSkills = new ArrayList<>();
+        for (Skill skill : user.getSkills()){
+            userSkills.add(skill.getTitle());
+        }
+        return userSkills;
+
+    }
+
+
 }
