@@ -3,7 +3,6 @@ package school.faang.user_service.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import school.faang.user_service.dto.SkillDto;
-import school.faang.user_service.entity.user.Skill;
 import school.faang.user_service.service.SkillService;
 
 import java.util.List;
@@ -25,7 +24,7 @@ public class SkillController {
     }
 
     @DeleteMapping("/delete")
-   public SkillDto deleteSkill(@RequestBody SkillDto skillDto){
+    public SkillDto deleteSkill(@RequestBody SkillDto skillDto){
         return skillService.deleteSkill(skillDto);
     }
 
