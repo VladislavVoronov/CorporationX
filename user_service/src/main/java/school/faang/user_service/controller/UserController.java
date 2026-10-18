@@ -3,13 +3,10 @@ package school.faang.user_service.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import school.faang.user_service.dto.UserDto;
+import school.faang.user_service.dto.UserDtoForUpdate;
 import school.faang.user_service.service.UserService;
-
 
 @Validated
 @RestController
@@ -23,4 +20,19 @@ public class UserController {
     public UserDto createUser(@RequestBody @Valid UserDto userDto){
        return userService.createUser(userDto);
     }
+
+    @PutMapping("/update/{userId}")
+    public UserDto updateUser(@RequestBody @Valid UserDtoForUpdate userDtoForUpdate, @PathVariable long userId){
+        return userService.updateUser(userDtoForUpdate, userId);
+    }
+    @DeleteMapping("/delete/{userId}")
+    public UserDto deleteUser(@PathVariable long userId){
+        return userService.deleteUser(userId);
+    }
+
+    @GetMapping("/{userId}")
+    public UserDto getUser(@PathVariable long userId){
+        return userService.getUser(userId);
+    }
 }
+
