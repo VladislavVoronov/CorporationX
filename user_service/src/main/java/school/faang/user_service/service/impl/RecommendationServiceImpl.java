@@ -7,9 +7,11 @@ import school.faang.user_service.dto.RecommendationDtoForUpdate;
 import school.faang.user_service.entity.recommendation.Recommendation;
 import school.faang.user_service.entity.user.User;
 import school.faang.user_service.exception.EntityNotFoundException;
+import school.faang.user_service.mapper.RecommendationMapper;
 import school.faang.user_service.repository.recommendation.RecommendationRepository;
 import school.faang.user_service.repository.user.UserRepository;
 import school.faang.user_service.service.RecommendationService;
+import school.faang.user_service.service.UserRepositoryService;
 
 @Service
 @RequiredArgsConstructor
@@ -17,28 +19,23 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private final RecommendationRepository recommendationRepository;
     private final UserRepository userRepository;
+    private final UserRepositoryService userRepositoryService;
+    private final RecommendationMapper recommendationMapper;
 
     @Override
     public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
-        Recommendation recommendation = new Recommendation();
-        User author = userRepository.findById(recommendationDto.getAuthorId()).orElseThrow(
-                () -> new EntityNotFoundException("Author not found")
-        );
-        User receiver = userRepository.findById(recommendationDto.getReceiverId()).orElseThrow(
-                () -> new EntityNotFoundException("Receiver not found")
-        );
-        recommendation.setContent(recommendationDto.getContent());
-        recommendation.setAuthor(author);
-        recommendation.setReceiver(receiver);
+        User author = userRepositoryService.findById(recommendationDto.getAuthorId());
+        User receiver = userRepositoryService.findById(recommendationDto.getReceiverId());
+
+        Recommendation recommendation = recommendationMapper.mapToRecommendation(recommendationDto);
         recommendation = recommendationRepository.save(recommendation);
+
         author.getRecommendationsGiven().add(recommendation);
         receiver.getRecommendationsReceived().add(recommendation);
         userRepository.save(author);
         userRepository.save(receiver);
-        recommendationDto.setAuthorId(author.getId());
-        recommendationDto.setReceiverId(receiver.getId());
-        recommendationDto.setContent(recommendation.getContent());
-        return recommendationDto;
+
+        return recommendationMapper.mapToRecommendationDto(recommendation);
     }
 
     @Override
@@ -52,7 +49,9 @@ public class RecommendationServiceImpl implements RecommendationService {
         receiver.getRecommendationsReceived().remove(recommendation);
         userRepository.save(author);
         userRepository.save(receiver);
+
         recommendationRepository.deleteById(recommendationId);
+
         return recommendationId;
     }
 
@@ -65,9 +64,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendation = recommendationRepository.save(recommendation);
         recommendationDtoForUpdate.setContent(recommendation.getContent());
         recommendationDtoForUpdate.setRecommendationId(recommendation.getId());
+
         return recommendationDtoForUpdate;
     }
-
-
-
 }
