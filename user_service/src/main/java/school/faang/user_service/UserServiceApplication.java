@@ -24,6 +24,4 @@ public class UserServiceApplication {
         return objectMapper;
     }
 
-
-
 }
