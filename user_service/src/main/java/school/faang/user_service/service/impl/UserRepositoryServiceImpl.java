@@ -22,6 +22,13 @@ public class UserRepositoryServiceImpl implements UserRepositoryService {
     }
 
     @Override
+    public User findUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElseThrow(
+                () -> new EntityNotFoundException(MESSAGE_USER_NOT_FOUND)
+        );
+    }
+
+    @Override
     public User save(User user) {
         return userRepository.save(user);
     }

@@ -9,6 +9,7 @@ import school.faang.user_service.exception.EntityNotFoundException;
 import school.faang.user_service.repository.user.SkillRepository;
 import school.faang.user_service.repository.user.UserRepository;
 import school.faang.user_service.service.SkillService;
+import school.faang.user_service.service.UserRepositoryService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,8 +20,8 @@ public class SkillServiceImpl implements SkillService {
 
     private final SkillRepository skillRepository;
     private final UserRepository userRepository;
+    private final UserRepositoryService userRepositoryService;
 
-    private static final String MESSAGE_USER_NOT_FOUND = "User not found";
     private static final String MESSAGE_SKILL_NOT_FOUND = "Skill not found";
 
     @Override
@@ -28,7 +29,7 @@ public class SkillServiceImpl implements SkillService {
         Skill skill = new Skill();
         skill.setTitle(skillDto.getTitle());
 
-        User user = findUserByUsername(skillDto.getUsername());
+        User user = userRepositoryService.findUserByUsername(skillDto.getUsername());
         List<User> userList = new ArrayList<>();
         userList.add(user);
 
@@ -41,13 +42,9 @@ public class SkillServiceImpl implements SkillService {
         return skill.getTitle();
     }
 
-
     @Override
     public List<String> getUserSkills(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotFoundException(MESSAGE_USER_NOT_FOUND)
-        );
-
+        User user = userRepositoryService.findById(userId);
         List<String> userSkills = new ArrayList<>();
         for (Skill skill : user.getSkills()) {
             userSkills.add(skill.getTitle());
@@ -58,7 +55,7 @@ public class SkillServiceImpl implements SkillService {
 
     @Override
     public SkillDto deleteSkill(SkillDto skillDto) {
-        User user = findUserByUsername(skillDto.getUsername());
+        User user = userRepositoryService.findUserByUsername(skillDto.getUsername());
 
         List<Skill> userSkills = user.getSkills();
         Skill skill = findSkillByTitle(skillDto.getTitle());
@@ -76,7 +73,7 @@ public class SkillServiceImpl implements SkillService {
 
     @Override
     public String updateSkill(SkillDto skillDto, String newTitle) {
-        User user = findUserByUsername(skillDto.getUsername());
+        User user = userRepositoryService.findUserByUsername(skillDto.getUsername());
         Skill skill = findSkillByTitle(skillDto.getTitle());
         List<Skill> userSkills = user.getSkills();
 
@@ -89,12 +86,6 @@ public class SkillServiceImpl implements SkillService {
         userRepository.save(user);
 
         return skill.getTitle();
-    }
-
-    private User findUserByUsername(String username) {
-        return userRepository.findByUsername(username).orElseThrow(
-                () -> new EntityNotFoundException(MESSAGE_USER_NOT_FOUND)
-        );
     }
 
     private Skill findSkillByTitle(String title) {

@@ -7,4 +7,5 @@ public interface UserRepositoryService {
     User findById(long userId);
     User save(User user);
     void delete(User user);
+    User findUserByUsername(String username);
 }

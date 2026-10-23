@@ -14,7 +14,6 @@ import school.faang.user_service.service.UserService;
 
 import java.util.List;
 
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -25,9 +24,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto createUser(UserDto userDto) {
-        Country country = countryRepository.findById(userDto.getCountryId()).orElseThrow(
-                () -> new EntityNotFoundException("Country not found")
-        );
+        Country country = findById(userDto.getCountryId());
 
         User user = userMapper.mapToUser(userDto);
         user.setActive(true);
@@ -47,25 +44,19 @@ public class UserServiceImpl implements UserService {
         Long oldCountryId = null;
         if (userDtoForUpdate.getCountryId() != null) {
             oldCountryId = user.getCountry().getId();
-            Country oldCountry = countryRepository.findById(oldCountryId).orElseThrow(
-                    () -> new EntityNotFoundException("Country not found")
-            );
+            Country oldCountry = findById(oldCountryId);
             List<User> residents = oldCountry.getResidents();
             residents.remove(user);
             oldCountry.setResidents(residents);
             countryRepository.save(oldCountry);
-            user.setCountry(countryRepository.findById(userDtoForUpdate.getCountryId()).orElseThrow(
-                    () -> new EntityNotFoundException("Country not found")
-            ));
+            user.setCountry(findById(userDtoForUpdate.getCountryId()));
         }
 
         userMapper.updatedUser(userDtoForUpdate, user);
         user = userRepositoryService.save(user);
 
         if (oldCountryId != null) {
-            Country newCountry = countryRepository.findById(userDtoForUpdate.getCountryId()).orElseThrow(
-                    () -> new EntityNotFoundException("Country not found")
-            );
+            Country newCountry = findById(userDtoForUpdate.getCountryId());
             List<User> newResidents = newCountry.getResidents();
             newResidents.add(user);
             newCountry.setResidents(newResidents);
@@ -80,9 +71,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepositoryService.findById(userId);
         userRepositoryService.delete(user);
 
-        Country country = countryRepository.findById(user.getCountry().getId()).orElseThrow(
-                () -> new EntityNotFoundException("Country not found")
-        );
+        Country country = findById(user.getCountry().getId());
         country.getResidents().remove(user);
         countryRepository.save(country);
 
@@ -93,5 +82,11 @@ public class UserServiceImpl implements UserService {
     public UserDto getUser(long userId) {
         User user = userRepositoryService.findById(userId);
         return userMapper.mapToUserDto(user);
+    }
+
+    private Country findById(long id){
+       return countryRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("Country not found")
+        );
     }
 }
