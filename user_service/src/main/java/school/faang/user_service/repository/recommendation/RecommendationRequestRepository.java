@@ -22,4 +22,5 @@ public interface RecommendationRequestRepository extends JpaRepository<Recommend
                 () -> new EntityNotFoundException(String.format("Recommendation request %d not found", requestId))
         );
     }
+
 }
