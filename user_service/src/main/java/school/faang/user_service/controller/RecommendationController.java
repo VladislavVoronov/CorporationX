@@ -10,7 +10,6 @@ import school.faang.user_service.dto.RecommendationDto;
 import school.faang.user_service.dto.RecommendationDtoForUpdate;
 import school.faang.user_service.dto.RecommendationRequestAcceptDto;
 import school.faang.user_service.dto.RecommendationRequestDto;
-import school.faang.user_service.entity.recommendation.RecommendationRequest;
 import school.faang.user_service.service.RecommendationService;
 
 @RequiredArgsConstructor

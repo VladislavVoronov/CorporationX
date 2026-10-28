@@ -18,6 +18,7 @@ import school.faang.user_service.repository.recommendation.RecommendationRequest
 import school.faang.user_service.repository.user.UserRepository;
 import school.faang.user_service.service.RecommendationService;
 import school.faang.user_service.service.UserRepositoryService;
+
 import java.time.LocalDateTime;
 
 @Service
@@ -40,9 +41,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public long deleteRecommendation(long recommendationId) {
-        Recommendation recommendation = recommendationRepository.findById(recommendationId).orElseThrow(
-                () -> new EntityNotFoundException("Recommendation not found")
-        );
+        Recommendation recommendation = findRecommendation(recommendationId);
         User author = recommendation.getAuthor();
         author.getRecommendationsGiven().remove(recommendation);
         User receiver = recommendation.getReceiver();
@@ -57,9 +56,7 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public RecommendationDtoForUpdate updateRecommendation(RecommendationDtoForUpdate recommendationDtoForUpdate) {
-        Recommendation recommendation = recommendationRepository.findById(recommendationDtoForUpdate.getRecommendationId()).orElseThrow(
-                () -> new EntityNotFoundException("recommendation not found")
-        );
+        Recommendation recommendation = findRecommendation(recommendationDtoForUpdate.getRecommendationId());
         recommendation.setContent(recommendationDtoForUpdate.getContent());
         recommendation = recommendationRepository.save(recommendation);
         recommendationDtoForUpdate.setContent(recommendation.getContent());
@@ -70,23 +67,21 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     @Override
     public long createRecommendationRequest(RecommendationRequestDto recommendationRequestDto) {
-        RecommendationRequest latestRecommendation = recommendationRequestRepository.findLatestPendingRequest
-                (recommendationRequestDto.getRequesterId(),
-                recommendationRequestDto.getReceiverId()).orElseThrow(
-                ()->new EntityNotFoundException("Нет последней рекоммендации")
+        recommendationRequestRepository.findLatestPendingRequest(
+                userContext.getUserId(),
+                recommendationRequestDto.getReceiverId()).ifPresent(lastRequest -> {
+                    LocalDateTime availableAfter = lastRequest.getCreatedAt().plusMonths(6);
+                    LocalDateTime now = LocalDateTime.now();
+                    if (!now.isAfter(availableAfter)) {
+                        throw new IllegalStateException(
+                                "С даты создания должно пройти более 6 месяцев"
+                        );
+                    }
+                }
         );
 
-        LocalDateTime availableAfter = latestRecommendation.getCreatedAt().plusMonths(6);
-        LocalDateTime now = LocalDateTime.now();
-
-        if (!now.isAfter(availableAfter)) {
-            throw new IllegalStateException(
-                    "С даты создания должно пройти более 6 месяцев"
-            );
-        }
-
         RecommendationRequest recommendationRequest = RecommendationRequest.builder()
-                .requester(userRepositoryService.findById(recommendationRequestDto.getRequesterId()))
+                .requester(userRepositoryService.findById(userContext.getUserId()))
                 .receiver(userRepositoryService.findById(recommendationRequestDto.getReceiverId()))
                 .message(recommendationRequestDto.getMessage())
                 .status(RequestStatus.PENDING)
@@ -176,5 +171,11 @@ public class RecommendationServiceImpl implements RecommendationService {
         if (recommendationRequest.getStatus() != RequestStatus.PENDING) {
             throw new RuntimeException("Данный запрос не находится в статусе В ОЖИДАНИИ");
         }
+    }
+
+    private Recommendation findRecommendation(long recommendationId) {
+        return recommendationRepository.findById(recommendationId).orElseThrow(
+                () -> new EntityNotFoundException("Recommendation not found")
+        );
     }
 }
