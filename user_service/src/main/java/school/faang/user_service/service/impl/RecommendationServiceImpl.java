@@ -114,8 +114,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         validateActionsUser(recommendationRequest);
 
         RecommendationDto recommendationDto = RecommendationDto.builder()
-                .authorId(recommendationRequest.getRequester().getId())
-                .receiverId(recommendationRequest.getReceiver().getId())
+                .authorId(recommendationRequest.getReceiver().getId())
+                .receiverId(recommendationRequest.getRequester().getId())
                 .content(content)
                 .build();
 

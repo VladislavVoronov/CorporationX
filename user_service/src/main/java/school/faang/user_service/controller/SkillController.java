@@ -1,6 +1,8 @@
 package school.faang.user_service.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +34,7 @@ public class SkillController {
     }
 
     @PutMapping("/update/{newTitle}")
-    public String updateSkill(@RequestBody @Valid SkillDto skillDto, @PathVariable String newTitle){
+    public String updateSkill(@RequestBody @Valid SkillDto skillDto, @PathVariable @NotBlank @Size(max = 64) String newTitle){
         return skillService.updateSkill(skillDto, newTitle);
     }
 }
