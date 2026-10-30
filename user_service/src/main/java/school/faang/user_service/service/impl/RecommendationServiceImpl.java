@@ -1,6 +1,7 @@
 package school.faang.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.config.context.UserContext;
 import school.faang.user_service.dto.RecommendationDto;
@@ -31,6 +32,9 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final RecommendationMapper recommendationMapper;
     private final RecommendationRequestRepository recommendationRequestRepository;
     private final UserContext userContext;
+
+    @Value("${user-service.recommendation.delay-months}")
+    private long months;
 
     @Override
     public RecommendationDto createRecommendation(RecommendationDto recommendationDto) {
@@ -70,7 +74,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendationRequestRepository.findLatestPendingRequest(
                 userContext.getUserId(),
                 recommendationRequestDto.getReceiverId()).ifPresent(lastRequest -> {
-                    LocalDateTime availableAfter = lastRequest.getCreatedAt().plusMonths(6);
+                    LocalDateTime availableAfter = lastRequest.getCreatedAt().plusMonths(months);
                     LocalDateTime now = LocalDateTime.now();
                     if (!now.isAfter(availableAfter)) {
                         throw new IllegalStateException(
