@@ -78,7 +78,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                     LocalDateTime now = LocalDateTime.now();
                     if (!now.isAfter(availableAfter)) {
                         throw new IllegalStateException(
-                                "С даты создания должно пройти более 6 месяцев"
+                                "С даты создания должно пройти более " + months + " месяцев"
                         );
                     }
                 }
