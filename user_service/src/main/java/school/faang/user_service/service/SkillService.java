@@ -7,10 +7,13 @@ import java.util.List;
 
 public interface SkillService {
 
-   String createSkill(SkillDto skillDto);
-   List<String> getUserSkills(Long userId);
-   SkillDto deleteSkill(SkillDto skillDto);
-   String updateSkill(SkillDto skillDto, String newTitle);
+    String createSkill(SkillDto skillDto);
+
+    List<String> getUserSkills(Long userId);
+
+    SkillDto deleteSkill(SkillDto skillDto);
+
+    String updateSkill(SkillDto skillDto, String newTitle);
 }
 
 
