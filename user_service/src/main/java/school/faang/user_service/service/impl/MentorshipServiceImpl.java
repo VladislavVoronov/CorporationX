@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.config.context.UserContext;
-import school.faang.user_service.dto.MentorshipDto;
-import school.faang.user_service.dto.MentorshipRequestAcceptDto;
-import school.faang.user_service.dto.MentorshipRequestRejectDto;
-import school.faang.user_service.dto.UserDto;
+import school.faang.user_service.dto.*;
 import school.faang.user_service.entity.RequestStatus;
 import school.faang.user_service.entity.user.MentorshipRequest;
 import school.faang.user_service.entity.user.User;
@@ -58,16 +55,16 @@ public class MentorshipServiceImpl implements MentorshipService {
     }
 
     @Override
-    public List<UserDto> getMentors(long userId) {
+    public List<UserDtoForPublic> getMentors(long userId) {
         return userRepositoryService.findById(userId).getMentors().stream()
-                .map(userMapper::mapToUserDto)
+                .map(userMapper::mapToUserDtoForPublic)
                 .toList();
     }
 
     @Override
-    public List<UserDto> getMentee(long userId) {
+    public List<UserDtoForPublic> getMentee(long userId) {
         return userRepositoryService.findById(userId).getMentees().stream()
-                .map(userMapper::mapToUserDto)
+                .map(userMapper::mapToUserDtoForPublic)
                 .toList();
     }
 

@@ -3,6 +3,7 @@ package school.faang.user_service.mapper;
 
 import org.mapstruct.*;
 import school.faang.user_service.dto.UserDto;
+import school.faang.user_service.dto.UserDtoForPublic;
 import school.faang.user_service.dto.UserDtoForUpdate;
 import school.faang.user_service.entity.user.User;
 
@@ -19,6 +20,8 @@ public interface UserMapper {
     @Mapping(source = "countryId", target = "country.id", ignore = true)
     void updatedUser(UserDtoForUpdate userDtoForUpdate, @MappingTarget User user);
 
+    @Mapping(source = "country.id", target = "countryId")
+    UserDtoForPublic mapToUserDtoForPublic(User user);
 }
 
 

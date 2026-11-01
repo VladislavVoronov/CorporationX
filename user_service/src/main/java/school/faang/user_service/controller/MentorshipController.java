@@ -5,10 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import school.faang.user_service.dto.MentorshipDto;
-import school.faang.user_service.dto.MentorshipRequestAcceptDto;
-import school.faang.user_service.dto.MentorshipRequestRejectDto;
-import school.faang.user_service.dto.UserDto;
+import school.faang.user_service.dto.*;
 import school.faang.user_service.service.MentorshipService;
 
 import java.util.List;
@@ -27,12 +24,12 @@ public class MentorshipController {
     }
 
     @GetMapping("/mentors/{userId}")
-    public List<UserDto> getMentors(@PathVariable long userId) {
+    public List<UserDtoForPublic> getMentors(@PathVariable long userId) {
         return mentorshipService.getMentors(userId);
     }
 
     @GetMapping("/mentees/{userId}")
-    public List<UserDto> getMentee(@PathVariable long userId) {
+    public List<UserDtoForPublic> getMentee(@PathVariable long userId) {
         return mentorshipService.getMentee(userId);
     }
 
@@ -54,7 +51,7 @@ public class MentorshipController {
 
     @PutMapping("/request/reject/{mentorshipRequestId}")
     public MentorshipRequestRejectDto rejectMentorshipRequest(@PathVariable long mentorshipRequestId,
-                                                              @RequestBody String rejectReason) {
+                                                              @RequestBody @NotBlank @Size(max = 4096) String rejectReason) {
         return mentorshipService.rejectMentorshipRequest(mentorshipRequestId, rejectReason);
     }
 }
