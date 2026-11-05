@@ -1,6 +1,7 @@
 package school.faang.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.config.context.UserContext;
@@ -19,6 +20,7 @@ import school.faang.user_service.service.UserRepositoryService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MentorshipServiceImpl implements MentorshipService {
@@ -50,6 +52,8 @@ public class MentorshipServiceImpl implements MentorshipService {
 
         userRepositoryService.save(mentor);
         mentee = userRepositoryService.save(mentee);
+        log.info("Ментор и менти успешно пересохранены в базу данных c созданной менторской связью. ID ментора: {}, ID менти: {}."
+                , mentor.getId(), menteeId);
 
         return MentorshipDto.builder()
                 .mentorId(userContext.getUserId())
@@ -85,6 +89,9 @@ public class MentorshipServiceImpl implements MentorshipService {
 
             userRepositoryService.save(currentUser);
             userRepositoryService.save(targetUser);
+
+            log.info("Связь между ментором и менти успешно удалена. ID ментора: {}, ID менти: {}."
+                    , currentUser.getId(), targetUser.getId());
 
         } else {
             throw new DataValidationException(("Между пользователями нет менторской связи! " +
@@ -123,6 +130,8 @@ public class MentorshipServiceImpl implements MentorshipService {
                     .build();
 
             mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+            log.info("Запрос на менторство успешно создан. ID ментора: {}, ID менти: {}."
+                    , receiver.getId(), requester.getId());
 
             return mentorshipRequest.getId();
         }
@@ -147,6 +156,8 @@ public class MentorshipServiceImpl implements MentorshipService {
 
         mentorshipRequest.setStatus(RequestStatus.ACCEPTED);
         mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+        log.info("Запрос на менторство успешно принят ментором. ID ментора: {}, ID менти: {}."
+                , userContext.getUserId(), mentorshipRequest.getRequester().getId());
 
         return MentorshipRequestAcceptDto.builder()
                 .requestStatus(RequestStatus.ACCEPTED)
@@ -172,6 +183,8 @@ public class MentorshipServiceImpl implements MentorshipService {
         mentorshipRequest.setStatus(RequestStatus.REJECTED);
         mentorshipRequest.setRejectionReason(rejectReason);
         mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+        log.info("Запрос на менторство отклонён ментором. ID ментора: {}, ID менти: {}."
+                , userContext.getUserId(), mentorshipRequest.getRequester().getId());
 
         return MentorshipRequestRejectDto.builder()
                 .rejectReason(rejectReason)

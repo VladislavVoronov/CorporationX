@@ -1,6 +1,7 @@
 package school.faang.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.dto.SkillDto;
 import school.faang.user_service.entity.user.Skill;
@@ -14,6 +15,7 @@ import school.faang.user_service.service.UserRepositoryService;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SkillServiceImpl implements SkillService {
@@ -38,6 +40,7 @@ public class SkillServiceImpl implements SkillService {
 
         user.getSkills().add(skill);
         userRepository.save(user);
+        log.info("Новый скилл успешно создан. ID скилла: {}", skill.getId());
 
         return skill.getTitle();
     }
@@ -64,6 +67,7 @@ public class SkillServiceImpl implements SkillService {
 
         userRepository.save(user);
         skillRepository.delete(skill);
+        log.info("Скилл успешно удалён. ID скилла: {}.", skill.getId());
 
         skillDto.setUsername(user.getUsername());
         skillDto.setTitle(skill.getTitle());
@@ -84,6 +88,7 @@ public class SkillServiceImpl implements SkillService {
         userSkills.add(skill);
         user.setSkills(userSkills);
         userRepository.save(user);
+        log.info("Скилл успешно обновлён. ID скилла: {}.", skill.getId());
 
         return skill.getTitle();
     }

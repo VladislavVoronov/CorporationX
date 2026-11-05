@@ -1,6 +1,7 @@
 package school.faang.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.config.context.UserContext;
@@ -23,6 +24,7 @@ import school.faang.user_service.service.UserRepositoryService;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationServiceImpl implements RecommendationService {
@@ -55,6 +57,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         userRepository.save(receiver);
 
         recommendationRepository.deleteById(recommendationId);
+        log.info("Рекоммендация успешно удалена. ID рекоммендации: {}", recommendationId);
 
         return recommendationId;
     }
@@ -64,6 +67,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         Recommendation recommendation = findRecommendation(recommendationDtoForUpdate.getRecommendationId());
         recommendation.setContent(recommendationDtoForUpdate.getContent());
         recommendation = recommendationRepository.save(recommendation);
+        log.info("Рекоммендация успешно обновлена. ID рекоммендации: {}", recommendation.getId());
+
         recommendationDtoForUpdate.setContent(recommendation.getContent());
         recommendationDtoForUpdate.setRecommendationId(recommendation.getId());
 
@@ -93,6 +98,7 @@ public class RecommendationServiceImpl implements RecommendationService {
                 .build();
 
         recommendationRequest = recommendationRequestRepository.save(recommendationRequest);
+        log.info("Запрос рекоммендации успешно создан. ID запроса: {}", recommendationRequest.getId());
 
         return recommendationRequest.getId();
     }
@@ -108,6 +114,7 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendationRequest.setRejectionReason(rejectionReason);
         recommendationRequest.setStatus(RequestStatus.REJECTED);
         recommendationRequest = recommendationRequestRepository.save(recommendationRequest);
+        log.info("Запрос на рекоммендацию отклонён. ID запроса: {}", recommendationRequest.getId());
 
         return recommendationRequest.getRejectionReason();
     }
@@ -129,6 +136,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         recommendationRequest.setRecommendation(recommendation);
         recommendationRequest.setStatus(RequestStatus.ACCEPTED);
         recommendationRequest = recommendationRequestRepository.save(recommendationRequest);
+        log.info("Запрос на рекоммендацию успешно принят. ID запроса: {}. ID принявшего пользователя: {}"
+                , recommendationRequest.getId(), recommendationRequest.getReceiver().getId());
 
         return RecommendationRequestAcceptDto.builder()
                 .recommendationDto(recommendationDto)
@@ -164,6 +173,8 @@ public class RecommendationServiceImpl implements RecommendationService {
         receiver.getRecommendationsReceived().add(recommendation);
         userRepository.save(author);
         userRepository.save(receiver);
+        log.info("Рекоммендация успешно создана. ID Рекоммендации: {}, ID получателя: {}, ID отправителя: {}.",
+                recommendation.getId(), receiver.getId(), author.getId());
 
         return recommendation;
     }
