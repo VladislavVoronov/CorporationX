@@ -6,7 +6,7 @@ import school.faang.user_service.dto.UserDto;
 import school.faang.user_service.dto.UserDtoForUpdate;
 import school.faang.user_service.entity.user.Country;
 import school.faang.user_service.entity.user.User;
-import school.faang.user_service.exception.EntityNotFoundException;
+import school.faang.user_service.exception.CountryNotFoundException;
 import school.faang.user_service.mapper.UserMapper;
 import school.faang.user_service.repository.user.CountryRepository;
 import school.faang.user_service.service.UserRepositoryService;
@@ -84,9 +84,8 @@ public class UserServiceImpl implements UserService {
         return userMapper.mapToUserDto(user);
     }
 
-    private Country findById(long id){
-       return countryRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Country not found")
-        );
+    private Country findById(long id) {
+        return countryRepository.findById(id).orElseThrow(
+                () -> new CountryNotFoundException("Страна (ID: %s) не найдена".formatted(id)));
     }
 }

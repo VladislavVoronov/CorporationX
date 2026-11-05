@@ -12,7 +12,8 @@ import school.faang.user_service.entity.RequestStatus;
 import school.faang.user_service.entity.recommendation.Recommendation;
 import school.faang.user_service.entity.recommendation.RecommendationRequest;
 import school.faang.user_service.entity.user.User;
-import school.faang.user_service.exception.EntityNotFoundException;
+import school.faang.user_service.exception.ForbiddenException;
+import school.faang.user_service.exception.RecommendationRequestNotFoundException;
 import school.faang.user_service.mapper.RecommendationMapper;
 import school.faang.user_service.repository.recommendation.RecommendationRepository;
 import school.faang.user_service.repository.recommendation.RecommendationRequestRepository;
@@ -77,9 +78,9 @@ public class RecommendationServiceImpl implements RecommendationService {
                     LocalDateTime availableAfter = lastRequest.getCreatedAt().plusMonths(months);
                     LocalDateTime now = LocalDateTime.now();
                     if (!now.isAfter(availableAfter)) {
-                        throw new IllegalStateException(
-                                "С даты создания должно пройти более " + months + " месяцев"
-                        );
+                        throw new ForbiddenException(
+                                "С даты создания должно пройти более " + months + " месяцев. ID запроса: %s, ID ментора: %s, ID менти: %s."
+                                        .formatted(lastRequest.getId(), lastRequest.getReceiver(), lastRequest.getRequester()));
                     }
                 }
         );
@@ -99,8 +100,8 @@ public class RecommendationServiceImpl implements RecommendationService {
     @Override
     public String rejectRecommendationRequest(long recommendationRequestId, String rejectionReason) {
         RecommendationRequest recommendationRequest = recommendationRequestRepository.findById(recommendationRequestId).orElseThrow(
-                () -> new EntityNotFoundException("Recommendation Request not found")
-        );
+                () -> new RecommendationRequestNotFoundException("Запрос на рекоммендацию не найден! Запрашиваемый ID: %s, ID текущего пользователя: %s."
+                        .formatted(recommendationRequestId, userContext.getUserId())));
 
         validateActionsUser(recommendationRequest);
 
@@ -148,8 +149,8 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private RecommendationRequest findRecommendationRequestById(long recommendationRequestId) {
         return recommendationRequestRepository.findById(recommendationRequestId).orElseThrow(
-                () -> new EntityNotFoundException("Recommendation Request not found")
-        );
+                () -> new RecommendationRequestNotFoundException("Запрос на рекоммендацию не найден! Запрашиваемый ID: %s, ID текущего пользователя: %s."
+                        .formatted(recommendationRequestId, userContext.getUserId())));
     }
 
     private Recommendation prepareForCreateRecommendation(RecommendationDto recommendationDto) {
@@ -169,17 +170,21 @@ public class RecommendationServiceImpl implements RecommendationService {
 
     private void validateActionsUser(RecommendationRequest recommendationRequest) {
         if (userContext.getUserId() != recommendationRequest.getReceiver().getId()) {
-            throw new RuntimeException("Принять запрос может только его получатель");
+            throw new ForbiddenException(("Можно принять только тот запрос, который адресован текущему пользователю." +
+                    "ID запроса: %s, ID: текущего пользователя: %s.")
+                    .formatted(recommendationRequest.getId(), userContext.getUserId()));
         }
 
         if (recommendationRequest.getStatus() != RequestStatus.PENDING) {
-            throw new RuntimeException("Данный запрос не находится в статусе В ОЖИДАНИИ");
+            throw new ForbiddenException("Можно принять запрос только в статусе 'Ожидает'. ID запроса: %s"
+                    .formatted(recommendationRequest.getId()));
         }
     }
 
     private Recommendation findRecommendation(long recommendationId) {
         return recommendationRepository.findById(recommendationId).orElseThrow(
-                () -> new EntityNotFoundException("Recommendation not found")
-        );
+                () -> new RecommendationRequestNotFoundException(("Запрос на рекоммендацию не найден! " +
+                        "Запрашиваемый ID: %s, ID текущего пользователя: %s.")
+                        .formatted(recommendationId, userContext.getUserId())));
     }
 }

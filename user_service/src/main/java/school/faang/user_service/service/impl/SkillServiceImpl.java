@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import school.faang.user_service.dto.SkillDto;
 import school.faang.user_service.entity.user.Skill;
 import school.faang.user_service.entity.user.User;
-import school.faang.user_service.exception.EntityNotFoundException;
+import school.faang.user_service.exception.SkillNotFoundException;
 import school.faang.user_service.repository.user.SkillRepository;
 import school.faang.user_service.repository.user.UserRepository;
 import school.faang.user_service.service.SkillService;
@@ -22,7 +22,7 @@ public class SkillServiceImpl implements SkillService {
     private final UserRepository userRepository;
     private final UserRepositoryService userRepositoryService;
 
-    private static final String MESSAGE_SKILL_NOT_FOUND = "Skill not found";
+    private static final String MESSAGE_SKILL_NOT_FOUND = "Скилл не найден. Запрашиваемый Title: %s.";
 
     @Override
     public String createSkill(SkillDto skillDto) {
@@ -90,7 +90,7 @@ public class SkillServiceImpl implements SkillService {
 
     private Skill findSkillByTitle(String title) {
         return skillRepository.findByTitle(title).orElseThrow(
-                () -> new EntityNotFoundException(MESSAGE_SKILL_NOT_FOUND)
+                () -> new SkillNotFoundException(MESSAGE_SKILL_NOT_FOUND.formatted(title))
         );
     }
 }
