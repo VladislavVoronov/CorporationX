@@ -114,8 +114,8 @@ public class MentorshipServiceImpl implements MentorshipService {
                         LocalDateTime now = LocalDateTime.now();
                         if (!now.isAfter(availableAfter)) {
                             throw new ForbiddenException(
-                                    "С даты последнего запроса должно пройти более " + months + " месяцев. ID запроса: %s ID ментора: %s, ID менти: %s."
-                                            .formatted(lastRequest.getId(), lastRequest.getReceiver(), lastRequest.getRequester()));
+                                    "С даты последнего запроса должно пройти более %s месяцев. ID запроса: %s ID ментора: %s, ID менти: %s."
+                                            .formatted(months, lastRequest.getId(), lastRequest.getReceiver().getId(), lastRequest.getRequester().getId()));
                         }
                     }
             );

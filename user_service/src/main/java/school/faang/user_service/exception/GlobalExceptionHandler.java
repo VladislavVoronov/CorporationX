@@ -1,18 +1,20 @@
 package school.faang.user_service.exception;
 
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleUnknownException(Exception exception) {
-        log.error("Неизвестная ошибка. Срочно зовите фиксиков.");
+        log.error("Неизвестная ошибка.", exception);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -46,6 +48,15 @@ public class GlobalExceptionHandler {
                 .body(exception.getMessage());
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<String> handleConstraintViolationException( ConstraintViolationException exception) {
+        log.info("Ошибка валидации", exception);
+
+        return ResponseEntity
+                .badRequest()
+                .body(exception.getMessage());
+    }
+
     @ExceptionHandler(DataValidationException.class)
     public ResponseEntity<String> handleDataValidationException(DataValidationException exception) {
         log.error("Некорректный запрос.", exception);
@@ -61,6 +72,24 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(CountryNotFoundException.class)
+    public ResponseEntity<String> handleCountryNotFoundException(CountryNotFoundException exception) {
+        log.error("Страна не найдена", exception);
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(SkillNotFoundException.class)
+    public ResponseEntity<String> handleSkillNotFoundException(SkillNotFoundException exception) {
+        log.error("Скилл не найден", exception);
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(exception.getMessage());
     }
 }
