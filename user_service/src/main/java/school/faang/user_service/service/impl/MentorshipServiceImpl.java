@@ -1,6 +1,7 @@
 package school.faang.user_service.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import school.faang.user_service.config.context.UserContext;
@@ -8,7 +9,9 @@ import school.faang.user_service.dto.*;
 import school.faang.user_service.entity.RequestStatus;
 import school.faang.user_service.entity.user.MentorshipRequest;
 import school.faang.user_service.entity.user.User;
-import school.faang.user_service.exception.EntityNotFoundException;
+import school.faang.user_service.exception.DataValidationException;
+import school.faang.user_service.exception.ForbiddenException;
+import school.faang.user_service.exception.MentorshipNotFoundException;
 import school.faang.user_service.mapper.UserMapper;
 import school.faang.user_service.repository.mentorship.MentorshipRequestRepository;
 import school.faang.user_service.service.MentorshipService;
@@ -17,6 +20,7 @@ import school.faang.user_service.service.UserRepositoryService;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MentorshipServiceImpl implements MentorshipService {
@@ -35,11 +39,12 @@ public class MentorshipServiceImpl implements MentorshipService {
         User mentee = userRepositoryService.findById(menteeId);
 
         if (userContext.getUserId() == menteeId) {
-            throw new RuntimeException("Нельзя связать менторством самого себя");
+            throw new DataValidationException("Нельзя связать менторством самого себя, ID: %s".formatted(menteeId));
         }
 
         if (mentor.getMentees().contains(mentee) || mentee.getMentors().contains(mentor)) {
-            throw new RuntimeException("Данные пользователи уже связаны менторством");
+            throw new DataValidationException("Данные пользователи уже связаны менторством. ID ментора: %s, ID менти: %s ."
+                    .formatted(mentor.getId(), menteeId));
         }
 
         mentor.getMentees().add(mentee);
@@ -47,6 +52,8 @@ public class MentorshipServiceImpl implements MentorshipService {
 
         userRepositoryService.save(mentor);
         mentee = userRepositoryService.save(mentee);
+        log.info("Ментор и менти успешно пересохранены в базу данных c созданной менторской связью. ID ментора: {}, ID менти: {}."
+                , mentor.getId(), menteeId);
 
         return MentorshipDto.builder()
                 .mentorId(userContext.getUserId())
@@ -83,15 +90,21 @@ public class MentorshipServiceImpl implements MentorshipService {
             userRepositoryService.save(currentUser);
             userRepositoryService.save(targetUser);
 
+            log.info("Связь между ментором и менти успешно удалена. ID ментора: {}, ID менти: {}."
+                    , currentUser.getId(), targetUser.getId());
+
         } else {
-            throw new RuntimeException("Между пользователя нет менторской связи");
+            throw new DataValidationException(("Между пользователями нет менторской связи! " +
+                    "ID текущего пользователя: %s, ID запрашиваемого пользователя: %s")
+                    .formatted(currentUser.getId(), targetUser.getId()));
         }
     }
 
     @Override
     public long createMentorshipRequest(long userId, String description) {
         if (userId == userContext.getUserId()) {
-            throw new RuntimeException("Нельзя направить запрос на менторство самому себе");
+            throw new DataValidationException("Нельзя направить запрос на менторство самому себе! ID текущего пользователя: %s"
+                    .formatted(userContext.getUserId()));
         } else {
             User receiver = userRepositoryService.findById(userId);
 
@@ -100,9 +113,9 @@ public class MentorshipServiceImpl implements MentorshipService {
                         LocalDateTime availableAfter = lastRequest.getCreatedAt().plusMonths(months);
                         LocalDateTime now = LocalDateTime.now();
                         if (!now.isAfter(availableAfter)) {
-                            throw new IllegalStateException(
-                                    "С даты последнего запроса должно пройти более " + months + " месяцев"
-                            );
+                            throw new ForbiddenException(
+                                    "С даты последнего запроса должно пройти более %s месяцев. ID запроса: %s ID ментора: %s, ID менти: %s."
+                                            .formatted(months, lastRequest.getId(), lastRequest.getReceiver().getId(), lastRequest.getRequester().getId()));
                         }
                     }
             );
@@ -117,6 +130,8 @@ public class MentorshipServiceImpl implements MentorshipService {
                     .build();
 
             mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+            log.info("Запрос на менторство успешно создан. ID ментора: {}, ID менти: {}."
+                    , receiver.getId(), requester.getId());
 
             return mentorshipRequest.getId();
         }
@@ -127,17 +142,22 @@ public class MentorshipServiceImpl implements MentorshipService {
         MentorshipRequest mentorshipRequest = findMentorshipRequestById(mentorshipRequestId);
 
         if (mentorshipRequest.getStatus() != RequestStatus.PENDING) {
-            throw new IllegalArgumentException("Можно принять запрос только в статусе 'Ожидает'");
+            throw new ForbiddenException("Можно принять запрос только в статусе 'Ожидает'. ID запроса: %s"
+                    .formatted(mentorshipRequest.getId()));
         }
 
         if (mentorshipRequest.getReceiver().getId() != userContext.getUserId()) {
-            throw new IllegalArgumentException("Можно принять только тот запрос, который адресован текущему пользователю");
+            throw new ForbiddenException(("Можно принять только тот запрос, который адресован текущему пользователю." +
+                    "ID запроса: %s, ID: текущего пользователя: %s.")
+                    .formatted(mentorshipRequest.getId(), userContext.getUserId()));
         }
 
         createMentorship(mentorshipRequest.getRequester().getId());
 
         mentorshipRequest.setStatus(RequestStatus.ACCEPTED);
         mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+        log.info("Запрос на менторство успешно принят ментором. ID ментора: {}, ID менти: {}."
+                , userContext.getUserId(), mentorshipRequest.getRequester().getId());
 
         return MentorshipRequestAcceptDto.builder()
                 .requestStatus(RequestStatus.ACCEPTED)
@@ -150,16 +170,21 @@ public class MentorshipServiceImpl implements MentorshipService {
         MentorshipRequest mentorshipRequest = findMentorshipRequestById(mentorshipRequestId);
 
         if (mentorshipRequest.getStatus() != RequestStatus.PENDING) {
-            throw new IllegalArgumentException("Можно принять запрос только в статусе 'Ожидает'");
+            throw new ForbiddenException("Можно принять запрос только в статусе 'Ожидает'. ID запроса: %s"
+                    .formatted(mentorshipRequest.getId()));
         }
 
         if (mentorshipRequest.getReceiver().getId() != userContext.getUserId()) {
-            throw new IllegalArgumentException("Можно отклонить только тот запрос, который адресован текущему пользователю");
+            throw new ForbiddenException(("Можно отклонить только тот запрос, который адресован текущему пользователю." +
+                    "ID запроса: %s, ID: текущего пользователя: %s.")
+                    .formatted(mentorshipRequest.getId(), userContext.getUserId()));
         }
 
         mentorshipRequest.setStatus(RequestStatus.REJECTED);
         mentorshipRequest.setRejectionReason(rejectReason);
         mentorshipRequest = mentorshipRequestRepository.save(mentorshipRequest);
+        log.info("Запрос на менторство отклонён ментором. ID ментора: {}, ID менти: {}."
+                , userContext.getUserId(), mentorshipRequest.getRequester().getId());
 
         return MentorshipRequestRejectDto.builder()
                 .rejectReason(rejectReason)
@@ -170,7 +195,7 @@ public class MentorshipServiceImpl implements MentorshipService {
 
     private MentorshipRequest findMentorshipRequestById(long mentorshipRequestId) {
         return mentorshipRequestRepository.findById(mentorshipRequestId).orElseThrow(
-                () -> new EntityNotFoundException("Запрос на менторство не существует.")
-        );
+                () -> new MentorshipNotFoundException("Запрос на менторство не существует! ID запроса: %s."
+                        .formatted(mentorshipRequestId)));
     }
 }
