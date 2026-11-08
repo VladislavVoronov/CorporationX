@@ -9,6 +9,8 @@ import lombok.Data;
 @Data
 public class UserDto {
 
+    private Long userId;
+
     @NotBlank
     @Size(max = 64)
     private String username;

@@ -1,8 +1,38 @@
 package faang.school.postservice.dto.user;
 
-public record UserDto(
-    Long id,
-    String username,
-    String email
-) {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class UserDto {
+
+    private Long userId;
+
+    @NotBlank
+    @Size(max = 64)
+    private String username;
+
+    @NotBlank
+    @Size(max = 64)
+    @Email
+    private String email;
+
+    @Size(max = 32)
+    private String phone;
+
+    @NotBlank
+    @Size(max = 128)
+    private String password;
+
+    private String aboutMe;
+
+    private long countryId;
+
+    private String city;
+
+    @Positive
+    private Integer experience;
 }
