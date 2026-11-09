@@ -1,22 +1,17 @@
 package faang.school.postservice.service.impl;
 
-import faang.school.postservice.client.UserServiceClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.user.UserDto;
 import faang.school.postservice.exception.ForbiddenException;
-import faang.school.postservice.exception.PostNotFoundException;
-import faang.school.postservice.exception.UserNotFoundException;
 import faang.school.postservice.mapper.PostMapper;
 import faang.school.postservice.model.Post;
 import faang.school.postservice.repository.PostRepository;
+import faang.school.postservice.service.PostRepositoryService;
 import faang.school.postservice.service.PostService;
-import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,20 +23,12 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final UserContext userContext;
-    private final UserServiceClient userServiceClient;
     private final PostMapper postMapper;
+    private final PostRepositoryService postRepositoryService;
 
     @Override
     public long createPostDraft(String content) {
-        UserDto userDto;
-
-        try {
-            userDto = getUserById(userContext.getUserId());
-        } catch (FeignException e) {
-            throw new ResponseStatusException(
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    "Не удалось получить данные пользователя. Попробуйте позже.", e);
-        }
+        UserDto userDto = userContext.getUserById(userContext.getUserId());
 
         Post post = Post.builder()
                 .content(content)
@@ -58,7 +45,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public long publishPost(long postId) {
-        Post post = findPostById(postId);
+        Post post = postRepositoryService.findPostById(postId);
 
         validatePublishPost(post);
         validatePostAuthor(post);
@@ -74,7 +61,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public long updatePost(long postId, String content) {
-        Post post = findPostById(postId);
+        Post post = postRepositoryService.findPostById(postId);
 
         validatePostAuthor(post);
 
@@ -88,7 +75,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public long deletePost(long postId) {
-        Post post = findPostById(postId);
+        Post post = postRepositoryService.findPostById(postId);
 
         validatePostAuthor(post);
 
@@ -107,12 +94,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto getPostById(long postId) {
-        return postMapper.mapToPostDto(findPostById(postId));
+        return postMapper.mapToPostDto(postRepositoryService.findPostById(postId));
     }
 
     @Override
     public List<PostDto> getPostDraftsByAuthorId(long authorId) {
-        getUserById(authorId);
+        userContext.getUserById(authorId);
 
         return postRepository.findPostDraftsByAuthorId(authorId).stream()
                 .map(postMapper::mapToPostDto)
@@ -121,28 +108,11 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostDto> getPublishedPostsByAuthorId(long authorId) {
-        getUserById(authorId);
+        userContext.getUserById(authorId);
 
         return postRepository.findPublishedPostsByAuthorId(authorId).stream()
                 .map(postMapper::mapToPostDto)
                 .toList();
-    }
-
-    private Post findPostById(long postId) {
-        return postRepository.findById(postId).orElseThrow(
-                () -> new PostNotFoundException("Пост ID: %s не найден!".formatted(postId)));
-    }
-
-    private UserDto getUserById(long userId) {
-        UserDto userDto;
-
-        try {
-            userDto = userServiceClient.getUser(userId);
-        } catch (FeignException.NotFound e) {
-            throw new UserNotFoundException("Пользователь ID:%s не найден".formatted(userContext.getUserId()));
-        }
-
-        return userDto;
     }
 
     private void validatePublishPost(Post post) {

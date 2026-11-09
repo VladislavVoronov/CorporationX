@@ -49,6 +49,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(exception.getMessage());
     }
 
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<String> handleCommentNotFoundException(CommentNotFoundException exception) {
+        log.error("Комментарий не найден.", exception);
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
+
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<String> handleForbiddenException(ForbiddenException exception) {
         log.error("Невозможно выполнить данное действие.", exception);

@@ -30,8 +30,9 @@ public class UserRepositoryServiceImpl implements UserRepositoryService {
 
     @Override
     public User save(User user) {
+        user = userRepository.save(user);
         log.info("Пользователь успешно сохранён. ID пользователя: {}.", user.getId());
-        return userRepository.save(user);
+        return user;
     }
 
     @Override

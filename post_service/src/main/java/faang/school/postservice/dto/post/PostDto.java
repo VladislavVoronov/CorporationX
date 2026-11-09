@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class PostDto {
+
     private long id;
 
     private Long authorId;
