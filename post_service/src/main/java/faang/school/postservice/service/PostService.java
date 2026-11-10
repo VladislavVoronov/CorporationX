@@ -18,5 +18,5 @@ public interface PostService {
 
     List<PostDto> getPostDraftsByAuthorId(long authorId);
 
-    List<PostDto> getPublishedPostsByAuthorId(long authorId);
+    List<PostDto> getPostsByAuthorId(long authorId);
 }

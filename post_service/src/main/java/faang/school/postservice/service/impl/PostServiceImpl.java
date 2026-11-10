@@ -1,5 +1,6 @@
 package faang.school.postservice.service.impl;
 
+import faang.school.postservice.client.UserClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.post.PostDto;
 import faang.school.postservice.dto.user.UserDto;
@@ -23,12 +24,13 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final UserContext userContext;
+    private final UserClient userClient;
     private final PostMapper postMapper;
     private final PostRepositoryService postRepositoryService;
 
     @Override
     public long createPostDraft(String content) {
-        UserDto userDto = userContext.getUserById(userContext.getUserId());
+        UserDto userDto = userClient.getUserById(userContext.getUserId());
 
         Post post = Post.builder()
                 .content(content)
@@ -94,12 +96,18 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDto getPostById(long postId) {
-        return postMapper.mapToPostDto(postRepositoryService.findPostById(postId));
+        Post post = postRepositoryService.findPostById(postId);
+
+        if (!post.isPublished() && !post.getAuthorId().equals(userContext.getUserId())) {
+            throw new ForbiddenException("Нельзя получить чужой черновик поста");
+        }
+
+        return postMapper.mapToPostDto(post);
     }
 
     @Override
     public List<PostDto> getPostDraftsByAuthorId(long authorId) {
-        userContext.getUserById(authorId);
+        userClient.getUserById(authorId);
 
         return postRepository.findPostDraftsByAuthorId(authorId).stream()
                 .map(postMapper::mapToPostDto)
@@ -107,8 +115,14 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto> getPublishedPostsByAuthorId(long authorId) {
-        userContext.getUserById(authorId);
+    public List<PostDto> getPostsByAuthorId(long authorId) {
+        userClient.getUserById(authorId);
+
+        if (authorId == userContext.getUserId()) {
+            return postRepository.findNotDeletedPostsByAuthorId(authorId).stream()
+                    .map(postMapper::mapToPostDto)
+                    .toList();
+        }
 
         return postRepository.findPublishedPostsByAuthorId(authorId).stream()
                 .map(postMapper::mapToPostDto)

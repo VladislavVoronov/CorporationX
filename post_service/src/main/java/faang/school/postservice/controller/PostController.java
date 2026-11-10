@@ -63,9 +63,9 @@ public class PostController {
     }
 
     @GetMapping("/published/{authorId}")
-    public ResponseEntity<List<PostDto>> getPublishedPostsByAuthorId(@PathVariable long authorId) {
+    public ResponseEntity<List<PostDto>> getPostsByAuthorId(@PathVariable long authorId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postService.getPublishedPostsByAuthorId(authorId));
+                .body(postService.getPostsByAuthorId(authorId));
     }
 }

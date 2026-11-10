@@ -17,8 +17,14 @@ public class PostRepositoryServiceImpl implements PostRepositoryService {
 
     @Override
     public Post findPostById(long postId) {
-        return postRepository.findById(postId).orElseThrow(
+        Post post = postRepository.findById(postId).orElseThrow(
                 () -> new PostNotFoundException("Пост ID: %s не найден!".formatted(postId)));
+
+        if (post.isDeleted()) {
+            throw new PostNotFoundException("Пост ID: %s находится в статусе удалён!".formatted(postId));
+        }
+
+        return post;
     }
 
     @Override

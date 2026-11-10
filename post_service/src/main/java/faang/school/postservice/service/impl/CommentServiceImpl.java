@@ -32,7 +32,7 @@ public class CommentServiceImpl implements CommentService {
         UserDto userDto = userContext.getUserById(userContext.getUserId());
         Post post = postRepositoryService.findPostById(postId);
 
-        if (post.isDeleted() && !post.isPublished()) {
+        if (post.isDeleted() || !post.isPublished()) {
             throw new ForbiddenException("Можно добавить комментарий только к опубликованному и не удалённому посту");
         }
 
