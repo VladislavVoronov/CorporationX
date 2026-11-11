@@ -34,4 +34,10 @@ public class PostRepositoryServiceImpl implements PostRepositoryService {
 
         return post;
     }
+
+    @Override
+    public void delete(Post post) {
+       postRepository.delete(post);
+        log.info("Пост успешно удалён. ID поста: {}.", post.getId());
+    }
 }

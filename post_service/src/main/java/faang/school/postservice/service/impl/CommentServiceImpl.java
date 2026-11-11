@@ -1,5 +1,6 @@
 package faang.school.postservice.service.impl;
 
+import faang.school.postservice.client.UserClient;
 import faang.school.postservice.config.context.UserContext;
 import faang.school.postservice.dto.comment.CommentDto;
 import faang.school.postservice.dto.user.UserDto;
@@ -10,6 +11,7 @@ import faang.school.postservice.model.Post;
 import faang.school.postservice.service.CommentRepositoryService;
 import faang.school.postservice.service.CommentService;
 import faang.school.postservice.service.PostRepositoryService;
+import faang.school.postservice.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,18 +25,17 @@ import java.util.Objects;
 public class CommentServiceImpl implements CommentService {
 
     private final UserContext userContext;
+    private final UserClient userClient;
     private final PostRepositoryService postRepositoryService;
     private final CommentRepositoryService commentRepositoryService;
     private final CommentMapper commentMapper;
+    private final PostService postService;
 
     @Override
     public long createComment(long postId, String context) {
-        UserDto userDto = userContext.getUserById(userContext.getUserId());
+        UserDto userDto = userClient.getUserById(userContext.getUserId());
         Post post = postRepositoryService.findPostById(postId);
-
-        if (post.isDeleted() || !post.isPublished()) {
-            throw new ForbiddenException("Можно добавить комментарий только к опубликованному и не удалённому посту");
-        }
+        postService.validateDeletedPostById(postId);
 
         Comment comment = Comment.builder()
                 .content(context)
@@ -53,17 +54,10 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public long updateComment(long commentId, String context) {
-        UserDto userDto = userContext.getUserById(userContext.getUserId());
         Comment comment = commentRepositoryService.findCommentById(commentId);
-        Post post = postRepositoryService.findPostById(comment.getPost().getId());
 
-        if (!Objects.equals(userDto.getUserId(), comment.getAuthorId())) {
-            throw new ForbiddenException("Обновлять комментарий может только его автор");
-        }
-
-        if (post.isDeleted() && !post.isPublished()) {
-            throw new ForbiddenException("Можно обновить только комментарий только к опубликованному и не удалённому посту");
-        }
+        validateAuthorByCommentId(commentId);
+        postService.validateDeletedPostById(comment.getPost().getId());
 
         comment.setContent(context);
         comment = commentRepositoryService.save(comment);
@@ -75,16 +69,12 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentDto> getCommentsByPostId(long postId) {
-        Post post = postRepositoryService.findPostById(postId);
-
-        if (post.isDeleted() && !post.isPublished()) {
-            throw new ForbiddenException("Можно получить комментарии только к опубликованному и не удалённому посту");
-        }
+        postService.validateDeletedPostById(postId);
 
         List<Comment> comments = commentRepositoryService.findCommentsByPostId(postId);
 
         return comments.stream()
-                .map(commentMapper::mapToCommentDto)
+                .map(this::prepareCommentDtoWithSizeLikes)
                 .toList();
     }
 
@@ -93,17 +83,30 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepositoryService.findCommentById(commentId);
         Post post = postRepositoryService.findPostById(comment.getPost().getId());
 
-        if (!Objects.equals(userContext.getUserId(), comment.getAuthorId())) {
-            throw new ForbiddenException("Удалить комментарий может только его автор");
-        }
-
-        if (post.isDeleted() && !post.isPublished()) {
-            throw new ForbiddenException("Можно удалить комментарий только к опубликованному и не удалённому посту");
-        }
+        validateAuthorByCommentId(commentId);
+        postService.validateDeletedPostById(post.getId());
 
         post.getComments().remove(comment);
         postRepositoryService.save(post);
 
         commentRepositoryService.delete(comment);
+
+        log.info("Комментарий ID: {} к посту ID: {} успешно удалён.", comment.getId(), post.getId());
+    }
+
+    @Override
+    public void validateAuthorByCommentId(long commentId) {
+        UserDto userDto = userClient.getUserById(userContext.getUserId());
+        Comment comment = commentRepositoryService.findCommentById(commentId);
+
+        if (!Objects.equals(userDto.getUserId(), comment.getAuthorId())) {
+            throw new ForbiddenException("Вносить изменения в комментарий может только его автор");
+        }
+    }
+
+    private CommentDto prepareCommentDtoWithSizeLikes(Comment comment) {
+        CommentDto commentDto = commentMapper.mapToCommentDto(comment);
+        commentDto.setCountLikes(comment.getLikes().size());
+        return commentDto;
     }
 }

@@ -13,4 +13,6 @@ public interface CommentService {
     List<CommentDto> getCommentsByPostId(long postId);
 
     void deleteCommentById(long commentId);
+
+    void validateAuthorByCommentId(long commentId);
 }

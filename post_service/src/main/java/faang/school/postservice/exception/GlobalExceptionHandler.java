@@ -66,4 +66,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(exception.getMessage());
     }
+
+    @ExceptionHandler(LikeNotFoundException.class)
+    public ResponseEntity<String> handleLikeNotFoundException(LikeNotFoundException exception) {
+        log.error("Лайк не найден", exception);
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(exception.getMessage());
+    }
 }

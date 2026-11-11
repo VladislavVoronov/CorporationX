@@ -102,7 +102,7 @@ public class PostServiceImpl implements PostService {
             throw new ForbiddenException("Нельзя получить чужой черновик поста");
         }
 
-        return postMapper.mapToPostDto(post);
+        return preparePostDtoWithSizeLikes(post);
     }
 
     @Override
@@ -120,16 +120,17 @@ public class PostServiceImpl implements PostService {
 
         if (authorId == userContext.getUserId()) {
             return postRepository.findNotDeletedPostsByAuthorId(authorId).stream()
-                    .map(postMapper::mapToPostDto)
+                    .map(this::preparePostDtoWithSizeLikes)
                     .toList();
         }
 
         return postRepository.findPublishedPostsByAuthorId(authorId).stream()
-                .map(postMapper::mapToPostDto)
+                .map(this::preparePostDtoWithSizeLikes)
                 .toList();
     }
 
-    private void validatePublishPost(Post post) {
+    @Override
+    public void validatePublishPost(Post post) {
         if (post.isPublished()) {
             throw new ForbiddenException("Пост уже опубликован!");
 
@@ -138,9 +139,25 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    private void validatePostAuthor(Post post) {
+    @Override
+    public void validatePostAuthor(Post post) {
         if (post.getAuthorId() != userContext.getUserId()) {
             throw new ForbiddenException("Изменять пост может только его автор!");
         }
+    }
+
+    @Override
+    public void validateDeletedPostById(long postId) {
+        Post post = postRepositoryService.findPostById(postId);
+
+        if (post.isDeleted() && !post.isPublished()) {
+            throw new ForbiddenException("Нельзя взаимодействовать с неопубликованным и удалённым постом");
+        }
+    }
+
+    private PostDto preparePostDtoWithSizeLikes(Post post) {
+        PostDto postDto = postMapper.mapToPostDto(post);
+        postDto.setCountLikes(post.getLikes().size());
+        return postDto;
     }
 }

@@ -16,4 +16,6 @@ public class PostDto {
     private boolean published;
 
     private LocalDateTime publishedAt;
+
+    private int countLikes;
 }
