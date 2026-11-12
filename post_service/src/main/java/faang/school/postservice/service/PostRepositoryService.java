@@ -7,4 +7,6 @@ public interface PostRepositoryService {
     Post findPostById(long postId);
 
     Post save(Post post);
+
+    void delete(Post post);
 }
