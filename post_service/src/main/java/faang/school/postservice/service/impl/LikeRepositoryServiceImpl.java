@@ -38,4 +38,9 @@ public class LikeRepositoryServiceImpl implements LikeRepositoryService {
     public boolean existsByPostIdAndUserId(long postId, long userId) {
         return likeRepository.existsByPostIdAndUserId(postId, userId);
     }
+
+    @Override
+    public boolean existsByCommentIdAndUserId(long commentId, long userId) {
+        return likeRepository.existsByCommentIdAndUserId(commentId, userId);
+    }
 }

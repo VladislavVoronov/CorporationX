@@ -40,8 +40,4 @@ public class CommentRepositoryServiceImpl implements CommentRepositoryService {
     public List<Comment> findCommentsByPostId(long postId){
         return commentRepository.findCommentsByPostId(postId);
     }
-
-    public boolean existsByCommentIdAndUserId(long commentId, long userId) {
-        return commentRepository.existsByIdAndAuthorId(commentId, userId);
-    }
 }

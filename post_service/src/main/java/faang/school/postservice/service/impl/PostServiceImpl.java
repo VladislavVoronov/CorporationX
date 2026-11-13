@@ -108,6 +108,9 @@ public class PostServiceImpl implements PostService {
     @Override
     public List<PostDto> getPostDraftsByAuthorId(long authorId) {
         userClient.getUserById(authorId);
+        if (userContext.getUserId() != authorId) {
+            throw new ForbiddenException("Нельзя просматривать чужие черновики");
+        }
 
         return postRepository.findPostDraftsByAuthorId(authorId).stream()
                 .map(postMapper::mapToPostDto)
@@ -150,7 +153,7 @@ public class PostServiceImpl implements PostService {
     public void validateDeletedPostById(long postId) {
         Post post = postRepositoryService.findPostById(postId);
 
-        if (post.isDeleted() && !post.isPublished()) {
+        if (post.isDeleted() || !post.isPublished()) {
             throw new ForbiddenException("Нельзя взаимодействовать с неопубликованным и удалённым постом");
         }
     }

@@ -11,4 +11,6 @@ public interface LikeRepositoryService {
     void deleteLike(Like like);
 
     boolean existsByPostIdAndUserId(long postId, long userId);
+
+    boolean existsByCommentIdAndUserId(long commentId, long userId);
 }

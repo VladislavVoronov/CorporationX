@@ -34,10 +34,10 @@ public class LikeController {
                 .body(likeService.deletePostLike(likeId));
     }
 
-    @DeleteMapping("/commentdelete/{commentId}")
-    public ResponseEntity<Long> deleteLikeComment(@PathVariable long commentId) {
+    @DeleteMapping("/commentdelete/{likeId}")
+    public ResponseEntity<Long> deleteLikeComment(@PathVariable long likeId) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(likeService.deleteCommentLike(commentId));
+                .body(likeService.deleteCommentLike(likeId));
     }
 }

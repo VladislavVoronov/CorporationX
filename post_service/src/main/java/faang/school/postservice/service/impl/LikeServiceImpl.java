@@ -29,10 +29,8 @@ public class LikeServiceImpl implements LikeService {
     public long likePost(long postId) {
         UserDto userDto = userClient.getUserById(userContext.getUserId());
         Post post = postRepositoryService.findPostById(postId);
-
-        if (likeRepositoryService.existsByPostIdAndUserId(postId, userDto.getUserId())) {
-            throw new ForbiddenException("Под данным постом уже стоит лайк");
-        }
+        validateLikeForPostDraft(post);
+        validateLikePost(postId, userDto.getUserId());
 
         Like like = Like.builder()
                 .userId(userDto.getUserId())
@@ -50,13 +48,13 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public long likeComment(long commentId){
+    public long likeComment(long commentId) {
         UserDto userDto = userClient.getUserById(userContext.getUserId());
         Comment comment = commentRepositoryService.findCommentById(commentId);
+        Post post = comment.getPost();
 
-        if (likeRepository.existsByCommentIdAndUserId(commentId, userDto.getUserId())) {
-            throw new ForbiddenException("Под данным комментарием уже стоит лайк");
-        }
+        validateLikeForPostDraft(post);
+        validateLikeComment(commentId, userDto.getUserId());
 
         Like like = Like.builder()
                 .userId(userDto.getUserId())
@@ -78,11 +76,9 @@ public class LikeServiceImpl implements LikeService {
         userClient.getUserById(userContext.getUserId());
         Like like = likeRepositoryService.findById(likeId);
         Post post = postRepositoryService.findPostById(like.getPost().getId());
-        validateLikeAuthor(like);
 
-        if (!post.getLikes().contains(like)) {
-            throw new ForbiddenException("Под данным постом не стоит лайк");
-        }
+        validateLikeAuthor(like);
+        validateDeleteLikePost(likeId);
 
         post.getLikes().remove(like);
         postRepositoryService.save(post);
@@ -98,11 +94,9 @@ public class LikeServiceImpl implements LikeService {
         userClient.getUserById(userContext.getUserId());
         Like like = likeRepositoryService.findById(likeId);
         Comment comment = commentRepositoryService.findCommentById(like.getComment().getId());
-        validateLikeAuthor(like);
 
-        if (!comment.getLikes().contains(like)) {
-            throw new ForbiddenException("Под данным комментарием не стоит лайк");
-        }
+        validateLikeAuthor(like);
+        validateDeleteLikeComment(likeId);
 
         comment.getLikes().remove(like);
         commentRepositoryService.save(comment);
@@ -116,7 +110,60 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public void validateLikeAuthor(Like like) {
         if (like.getUserId() != userContext.getUserId()) {
-            throw new ForbiddenException("Изменять лайк может только его автор!");
+            throw new ForbiddenException("Изменять лайк может только его автор! ID: %s".formatted(like.getId()));
+        }
+    }
+
+    private void validateLikePost(long postId, long userId) {
+        if (likeRepositoryService.existsByPostIdAndUserId(postId, userId)) {
+            throw new ForbiddenException("Под данным постом уже стоит лайк. ID поста: %s ".formatted(postId));
+        }
+    }
+
+    private void validateLikeComment(long commentId, long userId) {
+        Comment comment = commentRepositoryService.findCommentById(commentId);
+
+        if (comment.getPost().isDeleted()) {
+            throw new ForbiddenException("Нельзя ставить лайк к кооментарию удаленного поста ID:%s".formatted(comment.getPost().getId()));
+        }
+
+        if (likeRepositoryService.existsByCommentIdAndUserId(commentId, userId)) {
+            throw new ForbiddenException("Под данным комментарием ID:%s уже стоит лайк".formatted(commentId));
+        }
+    }
+
+    private void validateDeleteLikePost(long likeId) {
+        Like like = likeRepositoryService.findById(likeId);
+        Post post = postRepositoryService.findPostById(like.getPost().getId());
+
+        if (!post.getLikes().contains(like)) {
+            throw new ForbiddenException("Под данным постом не стоит лайк. ID поста %s".formatted(post.getId()));
+        }
+
+        if (post.isDeleted()) {
+            throw new ForbiddenException("Невозможно убрать лайк под удаленным постом. ID поста %s".formatted(post.getId()));
+        }
+    }
+
+    private void validateDeleteLikeComment(long likeId) {
+        Like like = likeRepositoryService.findById(likeId);
+        Comment comment = commentRepositoryService.findCommentById(like.getComment().getId());
+
+        if (!comment.getLikes().contains(like)) {
+            throw new ForbiddenException("Под данным комментарием не стоит лайк. ID комментария: %s"
+                    .formatted(comment.getId()));
+        }
+
+        if (like.getPost().isDeleted()) {
+            throw new ForbiddenException("Невозможно убрать лайк c комментария под удаленным постом. ID поста %s"
+                    .formatted(like.getPost().getId()));
+        }
+    }
+
+    private void validateLikeForPostDraft(Post post) {
+        if (!post.isPublished() && post.getAuthorId() != userContext.getUserId()) {
+            throw new ForbiddenException("Нельзя поставить лайк чужому черновику. ID черновика: %s. ID автора %s"
+                    .formatted(post.getId(), post.getAuthorId()));
         }
     }
 }
