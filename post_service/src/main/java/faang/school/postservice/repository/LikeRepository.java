@@ -1,12 +1,13 @@
 package faang.school.postservice.repository;
 
 import faang.school.postservice.model.Like;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
-public interface LikeRepository extends CrudRepository<Like, Long> {
+@Repository
+public interface LikeRepository extends JpaRepository<Like, Long> {
     @Transactional
     void deleteByPostIdAndUserId(long postId, long userId);
 
@@ -16,4 +17,8 @@ public interface LikeRepository extends CrudRepository<Like, Long> {
     Optional<Like> findByPostIdAndUserId(long postId, long userId);
 
     Optional<Like> findByCommentIdAndUserId(long commentId, long userId);
+
+    boolean existsByPostIdAndUserId(long postId, long userId);
+
+    boolean existsByCommentIdAndUserId(long commentId, long userId);
 }
