@@ -1,6 +1,5 @@
 package faang.school.postservice.service.impl;
 
-import faang.school.postservice.exception.CommentNotFoundException;
 import faang.school.postservice.exception.LikeNotFoundException;
 import faang.school.postservice.model.Like;
 import faang.school.postservice.repository.LikeRepository;
@@ -15,12 +14,6 @@ import org.springframework.stereotype.Service;
 public class LikeRepositoryServiceImpl implements LikeRepositoryService {
 
     private final LikeRepository likeRepository;
-
-    @Override
-    public Like findLikeByCommentIdAndUserId(long commentId, long userId) {
-        return likeRepository.findByCommentIdAndUserId(commentId, userId).orElseThrow(
-                () -> new CommentNotFoundException("Коментарий не найден"));
-    }
 
     @Override
     public Like findById(long likeId) {
