@@ -154,9 +154,9 @@ public class LikeServiceImpl implements LikeService {
                     .formatted(comment.getId()));
         }
 
-        if (like.getPost().isDeleted()) {
+        if (comment.getPost().isDeleted()) {
             throw new ForbiddenException("Невозможно убрать лайк c комментария под удаленным постом. ID поста %s"
-                    .formatted(like.getPost().getId()));
+                    .formatted(comment.getPost().getId()));
         }
     }
 
